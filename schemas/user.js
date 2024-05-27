@@ -12,6 +12,21 @@ const userSchema = z.object({
   password: z.string({
     required_error: 'User password is required',
   }),
+  longitude: z.optional(
+    z.number({
+      invalid_type_error: 'User longitude must be a decimal',
+    })
+  ),
+  latitude: z.optional(
+    z.number({
+      invalid_type_error: 'User longitude must be a decimal',
+    })
+  ),
+  browser_language: z.optional(
+    z.string({
+      invalid_type_error: 'User browser language must be a string',
+    })
+  ),
 });
 
 function validateUser(user) {

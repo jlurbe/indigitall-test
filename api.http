@@ -6,5 +6,26 @@ POST http://localhost:3000/users
 Content-Type: application/json
 
 {
-  
+  "username": "jlurbe",
+  "email": "jlurbe@gmail.com",
+  "password": "123456", 
+  "longitude": 120.12234, 
+  "latitude": -20.34789, 
+  "browser_language": "es"
 }
+
+### Update user
+PUT http://localhost:3000/users/3
+Content-Type: application/json
+
+{
+  "username": "jlurbe",
+  "email": "jlurbe@gmail.com",
+  "password": "123456", 
+  "longitude": 120.12234, 
+  "latitude": -20.34789, 
+  "browser_language": "es"
+}
+
+### Delete user by id
+DELETE http://localhost:3000/users/3

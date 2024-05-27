@@ -1,9 +1,9 @@
 const db = require('../lib/db');
 
-const dbCLient = db.getClient();
-
 class UserModel {
   static getById = async ({ id }) => {
+    const dbCLient = await db.getClient();
+
     try {
       const user = await dbCLient.get('SELECT * FROM users WHERE id = $id', {
         id,
@@ -16,21 +16,23 @@ class UserModel {
   };
 
   static create = async ({ user }) => {
+    const dbCLient = await db.getClient();
     const { username, email, password, longitude, latitude, browser_language } =
       user;
+
     dbCLient.run(
       `
-      INSERT INTO users 
-        (username, email, password, longitude, latitude, browser_language) 
+      INSERT INTO users
+        (username, email, password, longitude, latitude, browser_language)
       VALUES 
-        ($username, $email, $password, longitude, latitude, browser_language) `,
+        ($username, $email, $password, $longitude, $latitude, $browser_language)`,
       {
-        username,
-        email,
-        password,
-        longitude,
-        latitude,
-        browser_language,
+        $username: username,
+        $email: email,
+        $password: password,
+        $longitude: longitude,
+        $latitude: latitude,
+        $browser_language: browser_language,
       },
       function (error) {
         if (error) {
@@ -43,24 +45,30 @@ class UserModel {
   };
 
   static put = async ({ id, user }) => {
+    const dbCLient = await db.getClient();
+
     const { username, email, password, longitude, latitude, browser_language } =
       user;
     dbCLient.run(
       `
       UPDATE users 
-        (username, email, password, longitude, latitude, browser_language) 
-      SET 
-        ($username, $email, $password, longitude, latitude, browser_language)
+      SET
+        username = $username, 
+        email = $email, 
+        password = $password, 
+        longitude = $longitude, 
+        latitude = $latitude, 
+        browser_language = $browser_language
       WHERE
         id = $id`,
       {
-        id,
-        username,
-        email,
-        password,
-        longitude,
-        latitude,
-        browser_language,
+        $id: id,
+        $username: username,
+        $email: email,
+        $password: password,
+        $longitude: longitude,
+        $latitude: latitude,
+        $browser_language: browser_language,
       },
       function (error) {
         if (error) {
@@ -73,8 +81,10 @@ class UserModel {
   };
 
   static delete = async ({ id }) => {
+    const dbCLient = await db.getClient();
+
     try {
-      await dbCLient.run('DELETE FROM users WHERE id = $id', { id });
+      await dbCLient.run('DELETE FROM users WHERE id = $id', { $id: id });
     } catch (error) {
       throw new Error(`Error with user delete: ${error.message}`);
     }

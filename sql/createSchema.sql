@@ -6,7 +6,7 @@ create table if not exists test (
 insert into test values (1, 'test');
 
 create table if not exists users (
-  id int primary key,
+  id integer not null primary key autoincrement,
   username varchar(50) not null,
   email varchar(100) not null,
   password varchar(50) not null,
