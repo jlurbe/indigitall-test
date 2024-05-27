@@ -10,11 +10,11 @@ create table if not exists users (
   username varchar(50) not null,
   email varchar(100) not null,
   password varchar(50) not null,
-  longitude decimal(10,7)
+  longitude decimal(10,7),
   latitude decimal(10,7),
-  browser_language varchar(2)
+  browser_language varchar(2),
   ctime timestamp default current_timestamp,
-  mtime timestamp default current_timestamp,
+  mtime timestamp default current_timestamp
 );
 
 -- para temas de optimización podrí evitarse y hacerse en cada update
