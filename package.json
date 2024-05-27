@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www",
+    "start": "node --watch --env-file .env ./bin/www",
     "create-db": "node ./sql/createSchema"
   },
   "dependencies": {
@@ -11,8 +11,12 @@
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
+    "pino-http": "10.1.0",
     "sqlite": "^4.0.23",
     "sqlite3": "^5.0.2",
     "zod": "3.23.8"
+  },
+  "devDependencies": {
+    "pino-pretty": "11.1.0"
   }
 }
