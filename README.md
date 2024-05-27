@@ -32,6 +32,5 @@ Como utilidades para agilizar el desarrollo se incluye lo siguiente:
 
 ## Pending
 
-- Reformat errors?
-- Callbacks en el model. Tiene que ser async/await o Promises
-- Revisar rutes
+
+- Revisar lógica

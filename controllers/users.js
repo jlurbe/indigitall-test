@@ -1,16 +1,30 @@
+const errorCodes = require('../const/errorCodes');
 const { UserModel } = require('../models/user');
 const { validateUser } = require('../schemas/user');
+const { error_message } = require('../services/error');
 
 class UsersController {
   static getById = async (req, res) => {
-    const { id } = req.query;
-    const user = await UserModel.getById({ id });
+    const { id } = req.params;
 
-    if (user) {
+    try {
+      const user = await UserModel.getById({ id });
+
       return res.json(user);
-    }
+    } catch (error) {
+      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
+        return res.status(404).json(error_message(error));
+      }
 
-    return res.status(404).json({ message: 'User not found' });
+      if (error.code === errorCodes.USER_NOT_RETRIEVED) {
+        return res.status(500).json(error_message(error));
+      }
+
+      return res.status(500).json({
+        error_code: errorCodes.INTERNAL_SERVER_ERROR,
+        error_message: error.message,
+      });
+    }
   };
 
   static create = async (req, res) => {
@@ -22,9 +36,20 @@ class UsersController {
         .json({ error: JSON.parse(userValidation.error.message) });
     }
 
-    const newUser = await UserModel.create({ user: userValidation.data });
+    try {
+      const newUser = await UserModel.create({ user: userValidation.data });
 
-    return res.status(201).json(newUser);
+      return res.status(201).json(newUser);
+    } catch (error) {
+      if (error.code === errorCodes.NOT_CREATED_USER) {
+        return res.status(500).json(error_message(error));
+      }
+
+      return res.status(500).json({
+        error_code: errorCodes.INTERNAL_SERVER_ERROR,
+        error_message: error.message,
+      });
+    }
   };
 
   static put = async (req, res) => {
@@ -38,25 +63,49 @@ class UsersController {
 
     const { id } = req.params;
 
-    const updatedUser = await UserModel.put({ id, user: userValidation.data });
+    try {
+      const updatedUser = await UserModel.put({
+        id,
+        user: userValidation.data,
+      });
 
-    if (updatedUser === false) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.json(updatedUser);
+    } catch (error) {
+      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
+        return res.status(404).json(error_message(error));
+      }
+
+      if (error.code === errorCodes.NOT_UPDATED_USER) {
+        return res.status(500).json(error_message(error));
+      }
+
+      return res.status(500).json({
+        error_code: errorCodes.INTERNAL_SERVER_ERROR,
+        error_message: error.message,
+      });
     }
-
-    return res.json(updatedUser);
   };
 
   static delete = async (req, res) => {
     const { id } = req.params;
+    try {
+      await UserModel.delete({ id });
 
-    const result = await UserModel.delete({ id });
+      return res.json({ message: 'User deleted' });
+    } catch (error) {
+      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
+        return res.status(404).json(error_message(error));
+      }
 
-    if (result === false) {
-      return res.status(404).json({ message: 'User not found' });
+      if (error.code === errorCodes.NOT_DELETED_USER) {
+        return res.status(500).json(error_message(error));
+      }
+
+      return res.status(500).json({
+        error_code: errorCodes.INTERNAL_SERVER_ERROR,
+        error_message: error.message,
+      });
     }
-
-    return res.json({ message: 'User deleted' });
   };
 }
 

@@ -1,4 +1,6 @@
+const errorCodes = require('../const/errorCodes');
 const db = require('../lib/db');
+const { codify_error } = require('../services/error');
 
 class UserModel {
   static getById = async ({ id }) => {
@@ -6,12 +8,28 @@ class UserModel {
 
     try {
       const user = await dbCLient.get('SELECT * FROM users WHERE id = $id', {
-        id,
+        $id: id,
       });
+
+      if (!user) {
+        throw codify_error(
+          new Error('User not found'),
+          errorCodes.USER_ID_NOT_FOUND
+        );
+      }
 
       return user;
     } catch (error) {
-      throw new Error(`Error getting user: ${error.message}`);
+      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
+        throw error;
+      }
+
+      throw codify_error(
+        new Error(
+          `Error getting user: ${error.message}`,
+          errorCodes.USER_NOT_RETRIEVED
+        )
+      );
     }
   };
 
@@ -20,73 +38,123 @@ class UserModel {
     const { username, email, password, longitude, latitude, browser_language } =
       user;
 
-    dbCLient.run(
-      `
-      INSERT INTO users
-        (username, email, password, longitude, latitude, browser_language)
-      VALUES 
-        ($username, $email, $password, $longitude, $latitude, $browser_language)`,
-      {
-        $username: username,
-        $email: email,
-        $password: password,
-        $longitude: longitude,
-        $latitude: latitude,
-        $browser_language: browser_language,
-      },
-      function (error) {
-        if (error) {
-          throw new Error(`Error creating user: ${error.message}`);
+    try {
+      const result = await dbCLient.run(
+        `
+        INSERT INTO users
+          (username, email, password, longitude, latitude, browser_language)
+        VALUES 
+          ($username, $email, $password, $longitude, $latitude, $browser_language)`,
+        {
+          $username: username,
+          $email: email,
+          $password: password,
+          $longitude: longitude,
+          $latitude: latitude,
+          $browser_language: browser_language,
+        }
+      );
+
+      if (result.changes === 0) {
+        throw codify_error(
+          new Error(`User cannot be created`),
+          errorCodes.NOT_CREATED_USER
+        );
+      }
+
+      return { id: result?.lastID, ...user };
+    } catch (error) {
+      if (error) {
+        if (error.code === errorCodes.NOT_CREATED_USER) {
+          throw error;
         }
 
-        return { id: this.lastID, ...user };
+        throw codify_error(
+          new Error(
+            `Error creating user: ${error.message}`,
+            errorCodes.NOT_CREATED_USER
+          )
+        );
       }
-    );
+    }
   };
 
   static put = async ({ id, user }) => {
     const dbCLient = await db.getClient();
-
     const { username, email, password, longitude, latitude, browser_language } =
       user;
-    dbCLient.run(
-      `
-      UPDATE users 
-      SET
-        username = $username, 
-        email = $email, 
-        password = $password, 
-        longitude = $longitude, 
-        latitude = $latitude, 
-        browser_language = $browser_language
-      WHERE
-        id = $id`,
-      {
-        $id: id,
-        $username: username,
-        $email: email,
-        $password: password,
-        $longitude: longitude,
-        $latitude: latitude,
-        $browser_language: browser_language,
-      },
-      function (error) {
-        if (error) {
-          throw new Error(`Error with user put: ${error.message}`);
-        }
 
-        return user;
+    try {
+      var result = await dbCLient.run(
+        `
+        UPDATE users 
+        SET
+          username = $username, 
+          email = $email, 
+          password = $password, 
+          longitude = $longitude, 
+          latitude = $latitude, 
+          browser_language = $browser_language
+        WHERE
+          id = $id`,
+        {
+          $id: id,
+          $username: username,
+          $email: email,
+          $password: password,
+          $longitude: longitude,
+          $latitude: latitude,
+          $browser_language: browser_language,
+        }
+      );
+
+      if (result.changes === 0) {
+        throw codify_error(
+          new Error(`User cannot be updated`),
+          errorCodes.USER_ID_NOT_FOUND
+        );
       }
-    );
+
+      return { id, ...user };
+    } catch (error) {
+      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
+        throw error;
+      }
+
+      throw codify_error(
+        new Error(
+          `Error with user put: ${error.message}`,
+          errorCodes.NOT_UPDATED_USER
+        )
+      );
+    }
   };
 
   static delete = async ({ id }) => {
     const dbCLient = await db.getClient();
 
     try {
-      await dbCLient.run('DELETE FROM users WHERE id = $id', { $id: id });
+      const result = await dbCLient.run('DELETE FROM users WHERE id = $id', {
+        $id: id,
+      });
+
+      if (result.changes === 0) {
+        throw codify_error(
+          new Error(`User cannot be deleted`),
+          errorCodes.USER_ID_NOT_FOUND
+        );
+      }
     } catch (error) {
-      throw new Error(`Error with user delete: ${error.message}`);
+      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
+        throw error;
+      }
+
+      throw codify_error(
+        new Error(
+          `Error with user delete: ${error.message}`,
+          errorCodes.NOT_DELETED_USER
+        )
+      );
     }
 
     return true;
