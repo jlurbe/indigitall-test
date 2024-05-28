@@ -9,7 +9,7 @@ insert into test values (1, 'test');
 create table if not exists users (
   id integer not null primary key autoincrement,
   username varchar(50) not null,
-  email varchar(100) not null,
+  email varchar(100) not null unique,
   password varchar(100) not null,
   longitude decimal(10,7),
   latitude decimal(10,7),
