@@ -1,5 +1,6 @@
 const errorCodes = require('../const/errorCodes');
 const db = require('../lib/db');
+const { hashPassword } = require('../lib/hashUtils');
 const { codify_error } = require('../services/error');
 
 class UserModel {
@@ -11,19 +12,8 @@ class UserModel {
         $id: id,
       });
 
-      if (!user) {
-        throw codify_error(
-          new Error('User not found'),
-          errorCodes.USER_ID_NOT_FOUND
-        );
-      }
-
       return user;
     } catch (error) {
-      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
-        throw error;
-      }
-
       throw codify_error(
         new Error(
           `Error getting user: ${error.message}`,
@@ -35,8 +25,9 @@ class UserModel {
 
   static create = async ({ user }) => {
     const dbCLient = await db.getClient();
-    const { username, email, password, longitude, latitude, browser_language } =
+    let { username, email, password, longitude, latitude, browser_language } =
       user;
+    const hashedPassword = await hashPassword(password);
 
     try {
       const result = await dbCLient.run(
@@ -48,7 +39,7 @@ class UserModel {
         {
           $username: username,
           $email: email,
-          $password: password,
+          $password: hashedPassword,
           $longitude: longitude,
           $latitude: latitude,
           $browser_language: browser_language,
@@ -62,7 +53,7 @@ class UserModel {
         );
       }
 
-      return { id: result?.lastID, ...user };
+      return { id: result?.lastID, ...user, password: hashedPassword };
     } catch (error) {
       if (error) {
         if (error.code === errorCodes.NOT_CREATED_USER) {
@@ -83,6 +74,7 @@ class UserModel {
     const dbCLient = await db.getClient();
     const { username, email, password, longitude, latitude, browser_language } =
       user;
+    const hashedPassword = await hashPassword(password);
 
     try {
       var result = await dbCLient.run(
@@ -101,7 +93,7 @@ class UserModel {
           $id: id,
           $username: username,
           $email: email,
-          $password: password,
+          $password: hashedPassword,
           $longitude: longitude,
           $latitude: latitude,
           $browser_language: browser_language,
@@ -115,7 +107,7 @@ class UserModel {
         );
       }
 
-      return { id, ...user };
+      return { id, ...user, password: hashedPassword };
     } catch (error) {
       if (error.code === errorCodes.USER_ID_NOT_FOUND) {
         throw error;
@@ -139,16 +131,9 @@ class UserModel {
       });
 
       if (result.changes === 0) {
-        throw codify_error(
-          new Error(`User cannot be deleted`),
-          errorCodes.USER_ID_NOT_FOUND
-        );
+        return false;
       }
     } catch (error) {
-      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
-        throw error;
-      }
-
       throw codify_error(
         new Error(
           `Error with user delete: ${error.message}`,

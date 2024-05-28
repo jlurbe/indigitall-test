@@ -30,7 +30,10 @@ Como utilidades para agilizar el desarrollo se incluye lo siguiente:
 - Control de errores y excepciones.
 - Buena organización y estilo de código intentando seguir un patrón de diseño en el que la lógica y el modelo de datos sean independientes.
 
-## Pending
+## suposiciones y puntos a tener en cuenta
 
-
-- Revisar lógica
+- El id de la tabla de usuario lo dejamos como autonúmerico por sencillez, pero debería ser generado por un servicio compartido entre hemisferios para que fuera siempre único independientemente del hemisferio.
+- Se modifica el southernUsersApi para mockear resultados y errores
+- Se crea en la raíz el archivo api.http con algunas llamadas para testear la api
+- En el archivo sql/friendsQueries.sql están las queries solicitadas
+- Se deja el .env por sencillez. No se subiría al repositorio en condiciones normales

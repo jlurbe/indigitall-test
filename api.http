@@ -1,7 +1,20 @@
 ### Get user by id
 GET http://localhost:3000/users/1
 
-### Create new user
+### Create new user in north hemisphere
+POST http://localhost:3000/users
+Content-Type: application/json
+
+{
+  "username": "jlurbe",
+  "email": "juanjo.lurbe@gmail.com",
+  "password": "123456", 
+  "longitude": -0.3295, 
+  "latitude": 39.6018, 
+  "browser_language": "en"
+}
+
+### Create new user in south hemisphere
 POST http://localhost:3000/users
 Content-Type: application/json
 
@@ -14,7 +27,20 @@ Content-Type: application/json
   "browser_language": "es"
 }
 
-### Update user
+### Update user in north hemisphere
+PUT http://localhost:3000/users/1
+Content-Type: application/json
+
+{
+  "username": "juan.lurbe",
+  "email": "juanjo.lurbe@gmail.com",
+  "password": "123456", 
+  "longitude": -0.3295, 
+  "latitude": 39.6018, 
+  "browser_language": "es"
+}
+
+### Update user in south hemisphere
 PUT http://localhost:3000/users/3
 Content-Type: application/json
 
@@ -22,8 +48,8 @@ Content-Type: application/json
   "username": "jlurbe",
   "email": "jlurbe@gmail.com",
   "password": "123456", 
-  "longitude": 120.12234, 
-  "latitude": -20.34789, 
+  "longitude": -0.3295, 
+  "latitude": 39.6018, 
   "browser_language": "es"
 }
 

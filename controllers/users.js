@@ -2,13 +2,33 @@ const errorCodes = require('../const/errorCodes');
 const { UserModel } = require('../models/user');
 const { validateUser } = require('../schemas/user');
 const { error_message } = require('../services/error');
+const {
+  getUser,
+  insertUser,
+  updateUser,
+  deleteUser,
+} = require('../services/southernUsersApi');
+const { isSouthOrNorth } = require('../utils/geoLocation');
 
 class UsersController {
   static getById = async (req, res) => {
     const { id } = req.params;
 
     try {
-      const user = await UserModel.getById({ id });
+      // First we try to obtain the user from north hemisphere
+      var user = await UserModel.getById({ id });
+
+      // The user could be on the south hemisphere
+      if (!user) {
+        user = await getUser(id);
+      }
+
+      if (!user) {
+        return res.status(404).json({
+          error_code: errorCodes.USER_ID_NOT_FOUND,
+          error_message: 'User not found',
+        });
+      }
 
       return res.json(user);
     } catch (error) {
@@ -37,7 +57,19 @@ class UsersController {
     }
 
     try {
-      const newUser = await UserModel.create({ user: userValidation.data });
+      const hemisphere = await isSouthOrNorth(
+        userValidation.data.latitude,
+        userValidation.data.longitude
+      );
+
+      switch (hemisphere) {
+        case 'N':
+          var newUser = await UserModel.create({ user: userValidation.data });
+          break;
+        case 'S':
+          var newUser = await insertUser(userValidation.data);
+          break;
+      }
 
       return res.status(201).json(newUser);
     } catch (error) {
@@ -64,10 +96,22 @@ class UsersController {
     const { id } = req.params;
 
     try {
-      const updatedUser = await UserModel.put({
-        id,
-        user: userValidation.data,
-      });
+      const hemisphere = await isSouthOrNorth(
+        userValidation.data.latitude,
+        userValidation.data.longitude
+      );
+
+      switch (hemisphere) {
+        case 'N':
+          var updatedUser = await UserModel.put({
+            id,
+            user: userValidation.data,
+          });
+          break;
+        case 'S':
+          var updatedUser = await updateUser(id, userValidation.data);
+          break;
+      }
 
       return res.json(updatedUser);
     } catch (error) {
@@ -89,7 +133,13 @@ class UsersController {
   static delete = async (req, res) => {
     const { id } = req.params;
     try {
-      await UserModel.delete({ id });
+      // First we try to delete from north hemisphere
+      const result = await UserModel.delete({ id });
+
+      if (!result) {
+        // Not found. We try to remove from south hemisphere
+        await deleteUser(id);
+      }
 
       return res.json({ message: 'User deleted' });
     } catch (error) {
