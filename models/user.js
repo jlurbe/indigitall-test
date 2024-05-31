@@ -11,6 +11,7 @@ class UserModel {
       const user = await dbCLient.get('SELECT * FROM users WHERE id = $id', {
         $id: id,
       });
+      delete user.password;
 
       return user;
     } catch (error) {
