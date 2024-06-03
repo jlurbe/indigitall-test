@@ -1,7 +1,7 @@
 const errorCodes = require('../const/errorCodes');
 const { UserModel } = require('../models/user');
 const { validateUser } = require('../schemas/user');
-const { error_message } = require('../services/error');
+const { error_message, codify_error } = require('../services/error');
 const {
   getUser,
   insertUser,
@@ -11,7 +11,7 @@ const {
 const { isSouthOrNorth } = require('../utils/geoLocation');
 
 class UsersController {
-  static getById = async (req, res) => {
+  static getById = async (req, res, next) => {
     const { id } = req.params;
 
     try {
@@ -24,36 +24,32 @@ class UsersController {
       }
 
       if (!user) {
-        return res.status(404).json({
-          error_code: errorCodes.USER_ID_NOT_FOUND,
-          error_message: 'User not found',
-        });
+        return next(
+          codify_error(
+            new Error('User not found'),
+            errorCodes.USER_ID_NOT_FOUND
+          )
+        );
       }
 
       return res.json(user);
     } catch (error) {
-      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
-        return res.status(404).json(error_message(error));
-      }
-
-      if (error.code === errorCodes.USER_NOT_RETRIEVED) {
-        return res.status(500).json(error_message(error));
-      }
-
-      return res.status(500).json({
-        error_code: errorCodes.INTERNAL_SERVER_ERROR,
-        error_message: error.message,
-      });
+      next(error);
     }
   };
 
-  static create = async (req, res) => {
+  static create = async (req, res, next) => {
+    //Zod validation
     const userValidation = validateUser(req.body);
 
-    if (userValidation.error) {
-      return res
-        .status(400)
-        .json({ error: JSON.parse(userValidation.error.message) });
+    if (!userValidation.success) {
+      return next(
+        codify_error(
+          new Error('The validation could not be completed'),
+          errorCodes.NOT_VALIDATED_INFO,
+          userValidation.error.message
+        )
+      );
     }
 
     try {
@@ -73,24 +69,21 @@ class UsersController {
 
       return res.status(201).json(newUser);
     } catch (error) {
-      if (error.code === errorCodes.NOT_CREATED_USER) {
-        return res.status(500).json(error_message(error));
-      }
-
-      return res.status(500).json({
-        error_code: errorCodes.INTERNAL_SERVER_ERROR,
-        error_message: error.message,
-      });
+      next(error);
     }
   };
 
-  static put = async (req, res) => {
+  static put = async (req, res, next) => {
     const userValidation = validateUser(req.body);
 
     if (userValidation.error) {
-      return res
-        .status(400)
-        .json({ error: JSON.parse(userValidation.error.message) });
+      return next(
+        codify_error(
+          new Error('The validation could not be completed'),
+          errorCodes.NOT_VALIDATED_INFO,
+          userValidation.error.message
+        )
+      );
     }
 
     const { id } = req.params;
@@ -115,22 +108,11 @@ class UsersController {
 
       return res.json(updatedUser);
     } catch (error) {
-      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
-        return res.status(404).json(error_message(error));
-      }
-
-      if (error.code === errorCodes.NOT_UPDATED_USER) {
-        return res.status(500).json(error_message(error));
-      }
-
-      return res.status(500).json({
-        error_code: errorCodes.INTERNAL_SERVER_ERROR,
-        error_message: error.message,
-      });
+      next(error);
     }
   };
 
-  static delete = async (req, res) => {
+  static delete = async (req, res, next) => {
     const { id } = req.params;
     try {
       // First we try to delete from north hemisphere
@@ -143,18 +125,7 @@ class UsersController {
 
       return res.json({ message: 'User deleted' });
     } catch (error) {
-      if (error.code === errorCodes.USER_ID_NOT_FOUND) {
-        return res.status(404).json(error_message(error));
-      }
-
-      if (error.code === errorCodes.NOT_DELETED_USER) {
-        return res.status(500).json(error_message(error));
-      }
-
-      return res.status(500).json({
-        error_code: errorCodes.INTERNAL_SERVER_ERROR,
-        error_message: error.message,
-      });
+      next(error);
     }
   };
 }

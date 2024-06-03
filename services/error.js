@@ -1,12 +1,17 @@
-const codify_error = (err, code) => {
+const errorCodes = require('../const/errorCodes');
+
+const codify_error = (err, code, details) => {
   err.code = code;
+  err.details = details;
+
   return err;
 };
 
 const error_message = (error) => {
   return {
-    error_code: error.code,
-    error_message: error.message,
+    errorCode: error.code || errorCodes.INTERNAL_SERVER_ERROR,
+    message: error.message || 'Internal server error',
+    errorDetails: error.details ? JSON.parse(error.details) : undefined,
   };
 };
 

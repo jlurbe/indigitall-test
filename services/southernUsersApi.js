@@ -34,7 +34,6 @@ const getUser = (id) => {
         id,
         username: 'jlurbe',
         email: 'jlurbe@gmail.com',
-        password: '123456',
         longitude: 120.12234,
         latitude: -20.34789,
         browser_language: 'es',

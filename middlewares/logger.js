@@ -1,8 +1,9 @@
 const pino = require('pino');
 const pinoHttp = require('pino-http');
+const util = require('util');
 
 const transport =
-  process.env.DEVELOPMENT === 'true'
+  process.env.NODE_ENV === 'development'
     ? pino.transport({
         targets: [
           {
@@ -43,12 +44,18 @@ const logRequestsDetails = (req, res, next) => {
   res.on('finish', () => {
     const statusCode = res.statusCode;
 
-    if (statusCode === 401 || statusCode === 404 || statusCode === 405) {
-      req.log.warn(`[${req.method}] ${req.originalUrl} - ${statusCode}`);
-    } else if (statusCode === 500) {
+    if (statusCode === 400 || statusCode === 404 || statusCode === 500) {
       req.log.error(`[${req.method}] ${req.originalUrl} - ${statusCode}`);
     } else {
       req.log.info(`[${req.method}] ${req.originalUrl} - ${statusCode}`);
+    }
+
+    if (res.locals.error) {
+      const errorDetails =
+        res.locals.error instanceof Error
+          ? res.locals.error.stack
+          : util.inspect(res.locals.error, { depth: null });
+      req.log.error(`Error details: ${errorDetails}`);
     }
   });
 
