@@ -5,7 +5,7 @@ const userSchema = z.object({
     invalid_type_error: 'User name must be a string',
     required_error: 'User name is required',
   }),
-  email: z.string({
+  email: z.string().email({
     invalid_type_error: 'User email must be a string',
     required_error: 'User email is required',
   }),
