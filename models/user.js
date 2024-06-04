@@ -2,24 +2,21 @@ const errorCodes = require('../const/errorCodes');
 const db = require('../lib/db');
 const { hashPassword } = require('../lib/hashUtils');
 const { codify_error } = require('../lib/error');
+const {
+  getUserByIdQuery,
+  createUserQuery,
+  updateUserQuery,
+  deleteUserByIdQuery,
+} = require('../db/users');
 
 class UserModel {
   static getById = async ({ id }) => {
     const dbCLient = await db.getClient();
 
     try {
-      const user = await dbCLient.get(
-        `
-        SELECT 
-          id, username, email, longitude, latitude, ctime, mtime 
-        FROM 
-          users 
-        WHERE 
-          id = $id`,
-        {
-          $id: id,
-        }
-      );
+      const user = await dbCLient.get(getUserByIdQuery, {
+        $id: id,
+      });
 
       return user;
     } catch (error) {
@@ -39,21 +36,14 @@ class UserModel {
     const hashedPassword = await hashPassword(password);
 
     try {
-      const result = await dbCLient.run(
-        `
-        INSERT INTO users
-          (username, email, password, longitude, latitude, browser_language)
-        VALUES 
-          ($username, $email, $password, $longitude, $latitude, $browser_language)`,
-        {
-          $username: username,
-          $email: email,
-          $password: hashedPassword,
-          $longitude: longitude,
-          $latitude: latitude,
-          $browser_language: browser_language,
-        }
-      );
+      const result = await dbCLient.run(createUserQuery, {
+        $username: username,
+        $email: email,
+        $password: hashedPassword,
+        $longitude: longitude,
+        $latitude: latitude,
+        $browser_language: browser_language,
+      });
 
       if (result.changes === 0) {
         throw codify_error(
@@ -86,28 +76,15 @@ class UserModel {
     const hashedPassword = await hashPassword(password);
 
     try {
-      var result = await dbCLient.run(
-        `
-        UPDATE users 
-        SET
-          username = $username, 
-          email = $email, 
-          password = $password, 
-          longitude = $longitude, 
-          latitude = $latitude, 
-          browser_language = $browser_language
-        WHERE
-          id = $id`,
-        {
-          $id: id,
-          $username: username,
-          $email: email,
-          $password: hashedPassword,
-          $longitude: longitude,
-          $latitude: latitude,
-          $browser_language: browser_language,
-        }
-      );
+      var result = await dbCLient.run(updateUserQuery, {
+        $id: id,
+        $username: username,
+        $email: email,
+        $password: hashedPassword,
+        $longitude: longitude,
+        $latitude: latitude,
+        $browser_language: browser_language,
+      });
 
       if (result.changes === 0) {
         throw codify_error(
@@ -135,7 +112,7 @@ class UserModel {
     const dbCLient = await db.getClient();
 
     try {
-      const result = await dbCLient.run('DELETE FROM users WHERE id = $id', {
+      const result = await dbCLient.run(deleteUserByIdQuery, {
         $id: id,
       });
 
