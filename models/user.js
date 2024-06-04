@@ -1,7 +1,7 @@
 const errorCodes = require('../const/errorCodes');
 const db = require('../lib/db');
 const { hashPassword } = require('../lib/hashUtils');
-const { codify_error } = require('../services/error');
+const { codify_error } = require('../lib/error');
 
 class UserModel {
   static getById = async ({ id }) => {

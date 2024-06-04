@@ -1,5 +1,5 @@
 const errorCodes = require('../const/errorCodes');
-const { codify_error } = require('./error');
+const { codify_error } = require('../lib/error');
 
 const insertUser = (data) => {
   return new Promise((resolve, reject) => {

@@ -1,4 +1,4 @@
-const { error_message } = require('../services/error');
+const { error_message } = require('../lib/error');
 const errorCodes = require('../const/errorCodes'); // Asegúrate de ajustar la ruta según corresponda
 
 const errorHandler = (err, req, res, next) => {
