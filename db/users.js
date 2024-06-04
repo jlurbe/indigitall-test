@@ -1,6 +1,6 @@
 const getUserByIdQuery = `
   SELECT 
-    id, username, email, longitude, latitude, ctime, mtime 
+    id, username, email, longitude, latitude, browser_language, ctime, mtime 
   FROM 
     users 
   WHERE 
@@ -12,17 +12,7 @@ const createUserQuery = `
   VALUES 
     ($username, $email, $password, $longitude, $latitude, $browser_language)`;
 
-const updateUserQuery = `
-  UPDATE users 
-  SET
-    username = $username, 
-    email = $email, 
-    password = $password, 
-    longitude = $longitude, 
-    latitude = $latitude, 
-    browser_language = $browser_language
-  WHERE
-    id = $id`;
+const updateUserQuery = `UPDATE users SET _UPDATE_FIELDS_ WHERE id = $id`;
 
 const deleteUserByIdQuery = `DELETE FROM users WHERE id = $id`;
 

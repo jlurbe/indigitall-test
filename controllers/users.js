@@ -20,10 +20,13 @@ class UsersController {
     }
   };
 
-  static put = async (req, res, next) => {
+  static update = async (req, res, next) => {
     const { id } = req.params;
+    const isPutMethod = req.method === 'PUT';
+
     try {
-      const updatedUser = await UserService.put(id, req.body);
+      const updatedUser = await UserService.update(id, req.body, isPutMethod);
+
       return res.json(updatedUser);
     } catch (error) {
       next(error);

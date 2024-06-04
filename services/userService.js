@@ -6,7 +6,7 @@ const {
   deleteUser,
 } = require('./southernUsersApi');
 const { isSouthOrNorth } = require('../utils/geoLocation');
-const { validateUser } = require('../schemas/user');
+const { validateUser, validatePartialUser } = require('../schemas/user');
 const { codify_error } = require('../lib/error');
 const errorCodes = require('../const/errorCodes');
 
@@ -56,9 +56,11 @@ class UserService {
     return newUser;
   }
 
-  static async put(id, data) {
+  static async update(id, data, isPutMethod) {
     //Zod validation
-    const userValidation = validateUser(data);
+    const userValidation = isPutMethod
+      ? validateUser(data)
+      : validatePartialUser(data);
 
     if (userValidation.error) {
       throw codify_error(
@@ -77,7 +79,7 @@ class UserService {
 
     switch (hemisphere) {
       case 'N':
-        updatedUser = await UserModel.put({
+        updatedUser = await UserModel.update({
           id,
           user: userValidation.data,
         });

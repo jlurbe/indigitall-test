@@ -52,7 +52,7 @@ class UserModel {
         );
       }
 
-      return { id: result?.lastID, ...user, password: hashedPassword };
+      return { id: result?.lastID, ...user, password: undefined };
     } catch (error) {
       if (error) {
         if (error.code === errorCodes.NOT_CREATED_USER) {
@@ -69,22 +69,23 @@ class UserModel {
     }
   };
 
-  static put = async ({ id, user }) => {
+  static update = async ({ id, user }) => {
     const dbCLient = await db.getClient();
-    const { username, email, password, longitude, latitude, browser_language } =
-      user;
-    const hashedPassword = await hashPassword(password);
+
+    if (user.password) {
+      user.password = await hashPassword(user.password);
+    }
+
+    const { updateFields, updateValues } = UserModel.#buildUpdate({ user });
 
     try {
-      var result = await dbCLient.run(updateUserQuery, {
-        $id: id,
-        $username: username,
-        $email: email,
-        $password: hashedPassword,
-        $longitude: longitude,
-        $latitude: latitude,
-        $browser_language: browser_language,
-      });
+      var result = await dbCLient.run(
+        updateUserQuery.replace('_UPDATE_FIELDS_', updateFields),
+        {
+          $id: id,
+          ...updateValues,
+        }
+      );
 
       if (result.changes === 0) {
         throw codify_error(
@@ -93,7 +94,7 @@ class UserModel {
         );
       }
 
-      return { id, ...user, password: hashedPassword };
+      return { id, ...user, password: undefined };
     } catch (error) {
       if (error.code === errorCodes.USER_ID_NOT_FOUND) {
         throw error;
@@ -130,6 +131,21 @@ class UserModel {
 
     return true;
   };
+
+  static #buildUpdate({ user }) {
+    const userKeys = Object.keys(user);
+    const userValues = Object.values(user);
+
+    let updateFields = [];
+    let updateValues = {};
+
+    userKeys.forEach((userKey, index) => {
+      updateFields.push(`${userKey} = $${userKey}`);
+      updateValues[`$${userKey}`] = userValues[index];
+    });
+
+    return { updateFields: updateFields.join(', '), updateValues };
+  }
 }
 
 module.exports = { UserModel };
