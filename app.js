@@ -14,9 +14,6 @@ app.use(express.urlencoded({ extended: false }));
 // Pino logger
 app.use(pinoMiddleware);
 
-//Requests middleware
-app.use(logRequestsDetails);
-
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
@@ -24,6 +21,9 @@ app.use('/users', usersRouter);
 app.use(function (req, res, next) {
   next(createError(404));
 });
+
+//Requests middleware
+app.use(logRequestsDetails);
 
 // Error handler middleware
 app.use(errorHandler);

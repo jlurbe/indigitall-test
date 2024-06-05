@@ -38,7 +38,7 @@ const pinoMiddleware = pinoHttp({
   autoLogging: false,
 });
 
-const logRequestsDetails = (req, res, next) => {
+const logRequestsDetails = (err, req, res, next) => {
   req.log.info(`[${req.method}] ${req.url} ${JSON.stringify(req.body)}`);
 
   res.on('finish', () => {
@@ -51,15 +51,11 @@ const logRequestsDetails = (req, res, next) => {
     }
 
     if (res.locals.error) {
-      const errorDetails =
-        res.locals.error instanceof Error
-          ? res.locals.error.stack
-          : util.inspect(res.locals.error, { depth: null });
-      req.log.error(`Error details: ${errorDetails}`);
+      req.log.error(`Error details: ${res.locals.error.stack}`);
     }
   });
 
-  next();
+  next(err);
 };
 
 module.exports = { pinoMiddleware, logRequestsDetails };
