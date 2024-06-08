@@ -21,10 +21,8 @@ class UserModel {
       return user;
     } catch (error) {
       throw codify_error(
-        new Error(
-          `Error getting user: ${error.message}`,
-          errorCodes.USER_NOT_RETRIEVED
-        )
+        new Error(`Error getting user: ${error.message}`),
+        errorCodes.USER_NOT_RETRIEVED
       );
     }
   };
@@ -54,18 +52,12 @@ class UserModel {
 
       return { id: result?.lastID, ...user, password: undefined };
     } catch (error) {
-      if (error) {
-        if (error.code === errorCodes.NOT_CREATED_USER) {
-          throw error;
-        }
-
-        throw codify_error(
-          new Error(
-            `Error creating user: ${error.message}`,
-            errorCodes.NOT_CREATED_USER
-          )
-        );
-      }
+      throw codify_error(
+        new Error(
+          `Error creating user: ${error.message}`,
+          errorCodes.NOT_CREATED_USER
+        )
+      );
     }
   };
 
@@ -89,7 +81,7 @@ class UserModel {
 
       if (result.changes === 0) {
         throw codify_error(
-          new Error(`User cannot be updated`),
+          new Error('User cannot be updated'),
           errorCodes.USER_ID_NOT_FOUND
         );
       }
@@ -102,7 +94,7 @@ class UserModel {
 
       throw codify_error(
         new Error(
-          `Error with user put: ${error.message}`,
+          `Error with user update: ${error.message}`,
           errorCodes.NOT_UPDATED_USER
         )
       );
@@ -120,16 +112,14 @@ class UserModel {
       if (result.changes === 0) {
         return false;
       }
+
+      return true;
     } catch (error) {
       throw codify_error(
-        new Error(
-          `Error with user delete: ${error.message}`,
-          errorCodes.NOT_DELETED_USER
-        )
+        new Error(`Error with user delete: ${error.message}`),
+        errorCodes.NOT_DELETED_USER
       );
     }
-
-    return true;
   };
 
   static #buildUpdate({ user }) {
