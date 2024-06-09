@@ -1,12 +1,19 @@
 const { Router } = require('express');
 const { UsersController } = require('../controllers/users');
+const db = require('../lib/db');
 
-const usersRouter = Router();
+const createUserRouter = async () => {
+  const usersRouter = Router();
+  const dbClient = await db.getClient();
+  const usersController = new UsersController(dbClient);
 
-usersRouter.get('/:id', UsersController.getById);
-usersRouter.post('/', UsersController.create);
-usersRouter.patch('/:id', UsersController.update);
-usersRouter.put('/:id', UsersController.update);
-usersRouter.delete('/:id', UsersController.delete);
+  usersRouter.get('/:id', usersController.getById);
+  usersRouter.post('/', usersController.create);
+  usersRouter.patch('/:id', usersController.update);
+  usersRouter.put('/:id', usersController.update);
+  usersRouter.delete('/:id', usersController.delete);
 
-module.exports = { usersRouter };
+  return usersRouter;
+};
+
+module.exports = { createUserRouter };

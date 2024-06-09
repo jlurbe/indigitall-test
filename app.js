@@ -2,7 +2,7 @@ var createError = require('http-errors');
 var express = require('express');
 
 var indexRouter = require('./routes/index');
-const { usersRouter } = require('./routes/users');
+const { createUserRouter } = require('./routes/users');
 const { logRequestsDetails, pinoMiddleware } = require('./middlewares/logger');
 const { errorHandler } = require('./middlewares/errorHandler');
 
@@ -14,18 +14,28 @@ app.use(express.urlencoded({ extended: false }));
 // Pino logger
 app.use(pinoMiddleware);
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+// Initialize the usersRouter asynchronously and start the server
+(async () => {
+  try {
+    const usersRouter = await createUserRouter();
+    app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+    app.use('/', indexRouter);
 
-//Requests middleware
-app.use(logRequestsDetails);
+    // catch 404 and forward to error handler
+    app.use((req, res, next) => {
+      next(createError(404));
+    });
 
-// Error handler middleware
-app.use(errorHandler);
+    // Requests middleware
+    app.use(logRequestsDetails);
+
+    // Error handler middleware
+    app.use(errorHandler);
+  } catch (error) {
+    console.error('Failed to create user router:', error);
+    process.exit(1); // Exit the process with failure
+  }
+})();
 
 module.exports = app;

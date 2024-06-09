@@ -10,11 +10,13 @@ const {
 } = require('../db/users');
 
 class UserModel {
-  static getById = async ({ id }) => {
-    const dbCLient = await db.getClient();
+  constructor(dbClient) {
+    this.dbCLient = dbClient;
+  }
 
+  async getById({ id }) {
     try {
-      const user = await dbCLient.get(getUserByIdQuery, {
+      const user = await this.dbCLient.get(getUserByIdQuery, {
         $id: id,
       });
 
@@ -25,16 +27,15 @@ class UserModel {
         errorCodes.USER_NOT_RETRIEVED
       );
     }
-  };
+  }
 
-  static create = async ({ user }) => {
-    const dbCLient = await db.getClient();
+  async create({ user }) {
     let { username, email, password, longitude, latitude, browser_language } =
       user;
     const hashedPassword = await hashPassword(password);
 
     try {
-      const result = await dbCLient.run(createUserQuery, {
+      const result = await this.dbCLient.run(createUserQuery, {
         $username: username,
         $email: email,
         $password: hashedPassword,
@@ -59,11 +60,9 @@ class UserModel {
         )
       );
     }
-  };
+  }
 
-  static update = async ({ id, user }) => {
-    const dbCLient = await db.getClient();
-
+  async update({ id, user }) {
     if (user.password) {
       user.password = await hashPassword(user.password);
     }
@@ -71,7 +70,7 @@ class UserModel {
     const { updateFields, updateValues } = UserModel.#buildUpdate({ user });
 
     try {
-      var result = await dbCLient.run(
+      var result = await this.dbCLient.run(
         updateUserQuery.replace('_UPDATE_FIELDS_', updateFields),
         {
           $id: id,
@@ -99,13 +98,11 @@ class UserModel {
         )
       );
     }
-  };
+  }
 
-  static delete = async ({ id }) => {
-    const dbCLient = await db.getClient();
-
+  async delete({ id }) {
     try {
-      const result = await dbCLient.run(deleteUserByIdQuery, {
+      const result = await this.dbCLient.run(deleteUserByIdQuery, {
         $id: id,
       });
 
@@ -120,7 +117,7 @@ class UserModel {
         errorCodes.NOT_DELETED_USER
       );
     }
-  };
+  }
 
   static #buildUpdate({ user }) {
     const userKeys = Object.keys(user);

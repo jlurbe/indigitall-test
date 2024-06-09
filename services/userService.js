@@ -1,4 +1,3 @@
-const { UserModel } = require('../models/user');
 const {
   getUser,
   insertUser,
@@ -11,8 +10,13 @@ const { codify_error } = require('../lib/error');
 const errorCodes = require('../const/errorCodes');
 
 class UserService {
-  static async getById(id) {
-    let user = await UserModel.getById({ id });
+  constructor(userModel) {
+    this.userModel = userModel;
+  }
+
+  async getById(id) {
+    let user = await this.userModel.getById({ id });
+
     if (!user) {
       user = await getUser(id);
     }
@@ -25,7 +29,7 @@ class UserService {
     return user;
   }
 
-  static async create(data) {
+  async create(data) {
     //Zod validation
     const userValidation = validateUser(data);
 
@@ -46,7 +50,7 @@ class UserService {
 
     switch (hemisphere) {
       case 'N':
-        newUser = await UserModel.create({ user: userValidation.data });
+        newUser = await this.userModel.create({ user: userValidation.data });
         break;
       case 'S':
         newUser = await insertUser(userValidation.data);
@@ -56,7 +60,9 @@ class UserService {
     return newUser;
   }
 
-  static async update(id, data, isPutMethod) {
+  async update(id, data, method) {
+    const isPutMethod = method === 'PUT';
+
     //Zod validation
     const userValidation = isPutMethod
       ? validateUser(data)
@@ -79,7 +85,7 @@ class UserService {
 
     switch (hemisphere) {
       case 'N':
-        updatedUser = await UserModel.update({
+        updatedUser = await this.userModel.update({
           id,
           user: userValidation.data,
         });
@@ -92,9 +98,9 @@ class UserService {
     return updatedUser;
   }
 
-  static async delete(id) {
+  async delete(id) {
     // First we try to delete from north hemisphere
-    const result = await UserModel.delete({ id });
+    const result = await this.userModel.delete({ id });
 
     if (!result) {
       // Not found. We try to remove from south hemisphere
@@ -103,4 +109,4 @@ class UserService {
   }
 }
 
-module.exports = UserService;
+module.exports = { UserService };
