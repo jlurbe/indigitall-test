@@ -8,4 +8,4 @@ const errorCodes = {
   NOT_VALIDATED_INFO: 'NOT VALIDATED INFO',
 };
 
-module.exports = errorCodes;
+module.exports = { errorCodes };

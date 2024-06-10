@@ -7,11 +7,17 @@ const {
 const { isSouthOrNorth } = require('../utils/geoLocation');
 const { validateUser, validatePartialUser } = require('../schemas/user');
 const { codify_error } = require('../lib/error');
-const errorCodes = require('../const/errorCodes');
+const { errorCodes } = require('../const/errorCodes');
 
 class UserService {
   constructor(userModel) {
     this.userModel = userModel;
+
+    // Bind methods to ensure 'this' context is correct
+    this.getById = this.getById.bind(this);
+    this.create = this.create.bind(this);
+    this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
   }
 
   async getById(id) {

@@ -1,4 +1,4 @@
-const errorCodes = require('../const/errorCodes');
+const { errorCodes } = require('../const/errorCodes');
 const { codify_error } = require('../lib/error');
 
 const insertUser = (data) => {
