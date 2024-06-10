@@ -1,17 +1,17 @@
+const { errorCodes } = require('../../../const/errorCodes');
+const { codify_error } = require('../../../lib/error');
+const { validateUser, validatePartialUser } = require('../../../schemas/user');
 const {
-  getUser,
   insertUser,
+  getUser,
   updateUser,
   deleteUser,
-} = require('./southernUsersApi');
-const { isSouthOrNorth } = require('../utils/geoLocation');
-const { validateUser, validatePartialUser } = require('../schemas/user');
-const { codify_error } = require('../lib/error');
-const { errorCodes } = require('../const/errorCodes');
+} = require('../../../services/southernUsersApi');
+const { isSouthOrNorth } = require('../../../utils/geoLocation');
 
 class UserService {
-  constructor(userModel) {
-    this.userModel = userModel;
+  constructor(userRepository) {
+    this.userRepository = userRepository;
 
     // Bind methods to ensure 'this' context is correct
     this.getById = this.getById.bind(this);
@@ -21,7 +21,7 @@ class UserService {
   }
 
   async getById(id) {
-    let user = await this.userModel.getById({ id });
+    let user = await this.userRepository.getById({ id });
 
     if (!user) {
       user = await getUser(id);
@@ -56,7 +56,9 @@ class UserService {
 
     switch (hemisphere) {
       case 'N':
-        newUser = await this.userModel.create({ user: userValidation.data });
+        newUser = await this.userRepository.create({
+          user: userValidation.data,
+        });
         break;
       case 'S':
         newUser = await insertUser(userValidation.data);
@@ -91,7 +93,7 @@ class UserService {
 
     switch (hemisphere) {
       case 'N':
-        updatedUser = await this.userModel.update({
+        updatedUser = await this.userRepository.update({
           id,
           user: userValidation.data,
         });
@@ -106,7 +108,7 @@ class UserService {
 
   async delete(id) {
     // First we try to delete from north hemisphere
-    const result = await this.userModel.delete({ id });
+    const result = await this.userRepository.delete({ id });
 
     if (!result) {
       // Not found. We try to remove from south hemisphere

@@ -1,10 +1,12 @@
-const { UserModel } = require('../models/user');
-const { UserService } = require('../services/userService');
+const { UserService } = require('../contexts/users/application/user.service');
+const {
+  UserRepository,
+} = require('../contexts/users/infrastructure/user.repository');
 
 class UsersController {
   constructor(dbClient) {
-    const userModel = new UserModel(dbClient);
-    this.userService = new UserService(userModel);
+    const userRepository = new UserRepository(dbClient);
+    this.userService = new UserService(userRepository);
 
     // Bind methods to ensure 'this' context is correct
     this.getById = this.getById.bind(this);
@@ -17,6 +19,7 @@ class UsersController {
     const { id } = req.params;
     try {
       const user = await this.userService.getById(id);
+
       return res.json(user);
     } catch (error) {
       next(error);

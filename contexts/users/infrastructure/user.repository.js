@@ -1,16 +1,23 @@
-const { errorCodes } = require('../const/errorCodes');
-const { hashPassword } = require('../lib/hashUtils');
-const { codify_error } = require('../lib/error');
+const { errorCodes } = require('../../../const/errorCodes');
 const {
-  getUserByIdQuery,
   createUserQuery,
-  updateUserQuery,
   deleteUserByIdQuery,
-} = require('../db/users');
+  getUserByIdQuery,
+  updateUserQuery,
+} = require('../../../db/users');
+const { codify_error } = require('../../../lib/error');
+const { hashPassword } = require('../../../lib/hashUtils');
+const { User } = require('../domain/entities/user');
 
-class UserModel {
-  constructor(dbClient) {
-    this.dbCLient = dbClient;
+class UserRepository {
+  constructor(dbCLient) {
+    this.dbCLient = dbCLient;
+
+    // Bind methods to ensure 'this' context is correct
+    this.getById = this.getById.bind(this);
+    this.create = this.create.bind(this);
+    this.update = this.update.bind(this);
+    this.delete = this.delete.bind(this);
   }
 
   async getById({ id }) {
@@ -19,7 +26,7 @@ class UserModel {
         $id: id,
       });
 
-      return user;
+      return user ? new User(user) : null;
     } catch (error) {
       throw codify_error(
         new Error(`Error getting user: ${error.message}`),
@@ -45,7 +52,7 @@ class UserModel {
 
       if (result.changes === 0) {
         throw codify_error(
-          new Error(`User cannot be created`),
+          new Error('User cannot be created'),
           errorCodes.NOT_CREATED_USER
         );
       }
@@ -53,10 +60,8 @@ class UserModel {
       return { id: result?.lastID, ...user, password: undefined };
     } catch (error) {
       throw codify_error(
-        new Error(
-          `Error creating user: ${error.message}`,
-          errorCodes.NOT_CREATED_USER
-        )
+        new Error(`Error creating user: ${error.message}`),
+        errorCodes.NOT_CREATED_USER
       );
     }
   }
@@ -66,7 +71,7 @@ class UserModel {
       user.password = await hashPassword(user.password);
     }
 
-    const { updateFields, updateValues } = UserModel.#buildUpdate({ user });
+    const { updateFields, updateValues } = this.#buildUpdate({ user });
 
     try {
       var result = await this.dbCLient.run(
@@ -91,10 +96,8 @@ class UserModel {
       }
 
       throw codify_error(
-        new Error(
-          `Error with user update: ${error.message}`,
-          errorCodes.NOT_UPDATED_USER
-        )
+        new Error(`Error with user update: ${error.message}`),
+        errorCodes.NOT_UPDATED_USER
       );
     }
   }
@@ -118,7 +121,7 @@ class UserModel {
     }
   }
 
-  static #buildUpdate({ user }) {
+  #buildUpdate({ user }) {
     const userKeys = Object.keys(user);
     const userValues = Object.values(user);
 
@@ -134,4 +137,4 @@ class UserModel {
   }
 }
 
-module.exports = { UserModel };
+module.exports = { UserRepository };
