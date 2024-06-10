@@ -14,8 +14,11 @@ app.use(express.urlencoded({ extended: false }));
 // Pino logger
 app.use(pinoMiddleware);
 
+// Requests middleware
+app.use(logRequestsDetails);
+
 // Initialize the usersRouter asynchronously and start the server
-(async () => {
+const startServer = async () => {
   try {
     const usersRouter = await createUserRouter();
     app.use('/users', usersRouter);
@@ -27,15 +30,14 @@ app.use(pinoMiddleware);
       next(createError(404));
     });
 
-    // Requests middleware
-    app.use(logRequestsDetails);
-
     // Error handler middleware
     app.use(errorHandler);
   } catch (error) {
     console.error('Failed to create user router:', error);
     process.exit(1); // Exit the process with failure
   }
-})();
+};
+
+startServer();
 
 module.exports = app;

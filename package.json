@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node --env-file .env  ./bin/www",
-    "start:dev": "node --watch --env-file .env ./bin/www",
+    "start:dev": "node --env-file .env --watch ./bin/www",
     "create-db": "node ./sql/createSchema"
   },
   "dependencies": {

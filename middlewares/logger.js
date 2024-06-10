@@ -38,7 +38,7 @@ const pinoMiddleware = pinoHttp({
   autoLogging: false,
 });
 
-const logRequestsDetails = (err, req, res, next) => {
+const logRequestsDetails = (req, res, next) => {
   req.log.info(`[${req.method}] ${req.url} ${JSON.stringify(req.body)}`);
 
   res.on('finish', () => {
@@ -55,7 +55,7 @@ const logRequestsDetails = (err, req, res, next) => {
     }
   });
 
-  next(err);
+  next();
 };
 
 module.exports = { pinoMiddleware, logRequestsDetails };
